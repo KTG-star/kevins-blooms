@@ -43,7 +43,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-bloom-cream">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col md:flex-row bg-bloom-cream dark:bg-dark-bg">
       {/* Left Side - Visual */}
       <div className="hidden md:flex md:w-1/2 aurora-bg relative items-center justify-center p-12 overflow-hidden">
         <div className="absolute inset-0 bg-black/5" />
@@ -77,8 +77,8 @@ const LoginPage = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-12 lg:p-24 relative">
-        <Link to="/" className="absolute top-12 left-12 flex items-center gap-2 text-bloom-green/40 hover:text-bloom-green transition-all group font-bold text-xs uppercase tracking-widest">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 md:p-12 lg:p-24 relative">
+        <Link to="/" className="absolute top-6 left-6 md:top-12 md:left-12 flex items-center gap-2 text-bloom-green/40 hover:text-bloom-green transition-all group font-bold text-xs uppercase tracking-widest">
            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Home
         </Link>
         <motion.div 
