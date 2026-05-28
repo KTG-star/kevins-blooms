@@ -584,3 +584,11 @@ html {
   color: #c9a84c !important;
   text-shadow: 0 0 10px rgba(201, 168, 76, 0.5) !important;
 }
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
