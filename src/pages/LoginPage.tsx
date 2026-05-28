@@ -20,15 +20,23 @@ const LoginPage = () => {
   });
 
   // Fix mobile viewport height bug
+  // Fix mobile viewport height bug & flashing layout compression
   useEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
-    setVH();
+
+    // Delay execution by one animation frame to let Tailwind styles settle first
+    const rafId = requestAnimationFrame(() => {
+      setVH();
+    });
+
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
+    
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', setVH);
       window.removeEventListener('orientationchange', setVH);
     };
