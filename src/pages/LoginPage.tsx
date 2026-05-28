@@ -60,7 +60,7 @@ const LoginPage = () => {
   return (
     <div
       style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}
-      className="w-full min-h-screen flex flex-col md:flex-row bg-bloom-cream dark:bg-dark-bg overflow-x-hidden"
+      className="fixed inset-0 w-screen h-screen m-0 p-0 flex flex-col md:flex-row bg-bloom-cream dark:bg-dark-bg overflow-y-auto overflow-x-hidden z-50"
     >
       {/* Left Side - Visual (desktop only) */}
       <div className="hidden md:flex md:w-1/2 aurora-bg relative items-center justify-center p-12 overflow-hidden">
