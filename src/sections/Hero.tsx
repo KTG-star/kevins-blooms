@@ -48,10 +48,10 @@ const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-bloom-green/70 dark:text-bloom-pink font-cormorant italic text-2xl md:text-3xl mb-4 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(242,196,206,0.4)]">
+          <h2 className="text-bloom-green/70 dark:text-bloom-pink font-cormorant italic text-lg sm:text-xl md:text-3xl mb-4 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(242,196,206,0.4)]">
             Nature's Poetry in Every Petal
           </h2>
-          <h1 className="text-5xl md:text-8xl font-cormorant text-bloom-green leading-tight mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-8xl font-cormorant text-bloom-green leading-tight mb-8">
             Fresh Flowers, <br />
             <span className="italic">Delivered With Love</span>
           </h1>
