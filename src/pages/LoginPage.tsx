@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,24 +19,20 @@ const LoginPage = () => {
     password: ''
   });
 
-  // Fix mobile viewport height bug
-  // Fix mobile viewport height bug & flashing layout compression
-  useEffect(() => {
+  // useLayoutEffect fires synchronously BEFORE the browser paints the screen.
+  // This completely eliminates any layout compression or flashes during routing transitions.
+  useLayoutEffect(() => {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
 
-    // Delay execution by one animation frame to let Tailwind styles settle first
-    const rafId = requestAnimationFrame(() => {
-      setVH();
-    });
+    // Run instantly before paint
+    setVH();
 
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
-    
     return () => {
-      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', setVH);
       window.removeEventListener('orientationchange', setVH);
     };
@@ -68,7 +64,7 @@ const LoginPage = () => {
   return (
     <div
       style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}
-      className="fixed inset-0 w-screen h-screen m-0 p-0 flex flex-col md:flex-row bg-bloom-cream dark:bg-dark-bg overflow-y-auto overflow-x-hidden z-50"
+      className="fixed inset-0 w-screen h-screen m-0 p-0 flex flex-col md:flex-row bg-bloom-cream dark:bg-dark-bg overflow-y-auto overflow-x-hidden z-50 entries-container"
     >
       {/* Left Side - Visual (desktop only) */}
       <div className="hidden md:flex md:w-1/2 aurora-bg relative items-center justify-center p-12 overflow-hidden">
@@ -77,6 +73,7 @@ const LoginPage = () => {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "tween", duration: 0.3 }}
             className="text-5xl lg:text-7xl font-cormorant mb-6"
           >
             Welcome <br />
@@ -105,7 +102,7 @@ const LoginPage = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 md:p-12 lg:p-24 relative">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 md:p-12 lg:p-24 relative w-full asset-wrapper">
         <Link
           to="/"
           className="absolute top-6 left-6 md:top-12 md:left-12 flex items-center gap-2 text-bloom-green/40 hover:text-bloom-green transition-all group font-bold text-xs uppercase tracking-widest"
@@ -114,10 +111,12 @@ const LoginPage = () => {
           Home
         </Link>
 
+        {/* Switched to clean layout transitions to prevent inner container squeeze */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="w-full max-w-md mx-auto"
         >
           <h1 className="text-4xl font-cormorant text-bloom-green dark:text-white mb-2">
             Login
@@ -132,8 +131,8 @@ const LoginPage = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
+          <form onSubmit={handleSubmit} className="space-y-6 w-full">
+            <div className="relative w-full">
               <input
                 type="text"
                 name="identifier"
@@ -148,7 +147,7 @@ const LoginPage = () => {
               </label>
             </div>
 
-            <div className="relative">
+            <div className="relative w-full">
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -170,7 +169,7 @@ const LoginPage = () => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between w-full">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
