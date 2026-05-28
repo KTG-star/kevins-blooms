@@ -1,18 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import Hero from '../sections/Hero';
 import Bestsellers from '../sections/Bestsellers';
 import MoodQuiz from '../sections/MoodQuiz';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard';
-import { ArrowRight, Truck, ShieldCheck, Heart } from 'lucide-react';
+import { ArrowRight, Truck, ShieldCheck, Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const LandingPage = () => {
   const [featuredFlowers, setFeaturedFlowers] = useState([]);
+
+  // Synchronously handle layout calculations before any elements paint to screen.
+  // This blocks route transition layout compression permanently.
+  useLayoutEffect(() => {
+    const forceRecalculate = () => {
+      window.dispatchEvent(new Event('resize'));
+    };
+    
+    // Trigger right before painting
+    forceRecalculate();
+    
+    // Fallback delay to capture slower browser CSS engines
+    const timer = setTimeout(forceRecalculate, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -29,13 +43,13 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="bg-bloom-cream">
+    <div className="w-full bg-bloom-cream overflow-x-hidden min-h-screen flex flex-col">
       <Hero />
       <div className="section-divider" />
 
       {/* Featured Bento Grid */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-12">
+      <section className="py-24 px-6 max-w-7xl mx-auto w-full">
+        <div className="flex justify-between items-end mb-12 w-full">
           <div>
             <h2 className="text-4xl md:text-6xl font-cormorant text-bloom-green mb-4">Curated Collections</h2>
             <p className="text-bloom-green/60 max-w-md italic">Hand-picked selections for life's most beautiful moments.</p>
@@ -45,11 +59,12 @@ const LandingPage = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-6 h-[800px] md:h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-6 h-[800px] md:h-[600px] w-full">
           {/* Large Hero Cell */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
             className="md:col-span-2 md:row-span-2 relative group rounded-3xl overflow-hidden shadow-lg"
           >
             <img src="https://images.unsplash.com/photo-1591886960571-74d43a9d4166?w=1200&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="Grand Bouquet" />
@@ -65,8 +80,9 @@ const LandingPage = () => {
 
           {/* Medium Cell */}
           <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
             className="md:col-span-2 relative group rounded-3xl overflow-hidden shadow-lg"
           >
             <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="Roses" />
@@ -79,8 +95,9 @@ const LandingPage = () => {
 
           {/* Small Cells */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
             className="relative group rounded-3xl overflow-hidden shadow-lg"
           >
             <img src="https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=600&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="Sunflowers" />
@@ -91,8 +108,9 @@ const LandingPage = () => {
           </motion.div>
 
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
             className="relative group rounded-3xl overflow-hidden shadow-lg"
           >
             <img src="https://images.unsplash.com/photo-1566694271453-390536dd1f0d?w=600&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" alt="Orchids" />
@@ -105,10 +123,10 @@ const LandingPage = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 bg-white/50 border-y border-bloom-green/5">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-24 bg-white/50 border-y border-bloom-green/5 w-full">
+        <div className="max-w-7xl mx-auto px-6 w-full">
           <h2 className="text-4xl md:text-5xl font-cormorant text-bloom-green text-center mb-16">The Bloom Experience</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full">
             {[
               { icon: <Heart className="text-bloom-pink" />, title: "Crafted with Love", desc: "Every stem is hand-selected and arranged by our master florists." },
               { icon: <Truck className="text-bloom-gold" />, title: "Fast Delivery", desc: "Same-day delivery available in major cities. Freshness guaranteed." },
@@ -116,9 +134,10 @@ const LandingPage = () => {
             ].map((item, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
                 className="text-center"
               >
                 <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-6">
@@ -139,10 +158,10 @@ const LandingPage = () => {
       <div className="section-divider" />
 
       {/* Testimonials */}
-      <section className="py-24 px-6 bg-bloom-green text-bloom-cream overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-6 bg-bloom-green text-bloom-cream overflow-hidden w-full">
+        <div className="max-w-7xl mx-auto w-full">
           <h2 className="text-4xl md:text-5xl font-cormorant text-center mb-16">What Our Bloom Lovers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
             {[
               { name: "Sarah J.", city: "Lagos", quote: "The most beautiful bouquet I've ever received! The roses lasted for over a week." },
               { name: "David O.", city: "Abuja", quote: "Fast delivery and excellent customer service. Kevin's Blooms is my go-to now." },
@@ -150,12 +169,13 @@ const LandingPage = () => {
             ].map((item, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
                 className="p-8 rounded-3xl bg-white/5 border border-white/10"
               >
                 <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="#f2c4ce" color="#f2c4ce" />)}
+                  {[...Array(5)].map((_, idx) => <Star key={idx} size={16} fill="#f2c4ce" color="#f2c4ce" />)}
                 </div>
                 <p className="italic mb-8 text-lg font-cormorant leading-relaxed">"{item.quote}"</p>
                 <div>
@@ -169,11 +189,11 @@ const LandingPage = () => {
       </section>
 
       {/* Newsletter */}
-      <section className="py-24 px-6 bg-bloom-pink/20">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-24 px-6 bg-bloom-pink/20 w-full">
+        <div className="max-w-4xl mx-auto text-center w-full">
           <h2 className="text-4xl md:text-5xl font-cormorant text-bloom-green mb-6">Join the Bloom Club</h2>
           <p className="text-bloom-green/60 mb-10 max-w-lg mx-auto">Get exclusive offers, floral tips, and be the first to know about our seasonal collections.</p>
-          <form className="flex flex-col md:flex-row gap-4">
+          <form className="flex flex-col md:flex-row gap-4 w-full">
             <input 
               type="email" 
               placeholder="Your email address" 
