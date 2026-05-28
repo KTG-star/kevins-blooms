@@ -35,9 +35,26 @@ html {
 }
 
 /* ============================================
-   SMOOTH THEME TRANSITION
+   GLOBAL VIEWPORT ANCHOR & RESETS
    ============================================ */
-*, *::before, *::after {
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   SMOOTH THEME TRANSITION (STRUCTURE SAFE)
+   ============================================ */
+body, section, nav, footer, div, h1, h2, h3, h4, p, span, input, button, select, textarea {
   transition: 
     background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
@@ -584,6 +601,7 @@ html {
   color: #c9a84c !important;
   text-shadow: 0 0 10px rgba(201, 168, 76, 0.5) !important;
 }
+
 /* Hide scrollbar but keep scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
