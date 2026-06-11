@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, ArrowUpRight, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -20,7 +20,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
   const [added, setAdded] = useState(false);
   const [showPetals, setShowPetals] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsTouch('ontouchstart' in window);
+  }, []);
 
   const isLiked = wishlist?.includes(flower._id);
 
@@ -142,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
 
         {/* Glass Panel */}
         <motion.div 
-          animate={{ height: isHovered ? '60%' : '35%' }}
+          animate={{ height: isHovered || isTouch ? '60%' : '35%' }}
           className="absolute bottom-0 left-0 w-full glass p-6 flex flex-col justify-end transition-all duration-500 z-20"
         >
           <div className="flex justify-between items-start mb-2">
@@ -169,7 +174,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
 
           <motion.p 
             initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
+            animate={{ opacity: isHovered || isTouch ? 1 : 0 }}
             className="text-xs text-bloom-green/70 line-clamp-2 mb-4 font-dmsans"
           >
             {flower.description}
@@ -177,7 +182,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
 
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 10 }}
+            animate={{ opacity: isHovered || isTouch ? 1 : 0, y: isHovered || isTouch ? 0 : 10 }}
             className="flex items-center justify-between"
           >
             <button
