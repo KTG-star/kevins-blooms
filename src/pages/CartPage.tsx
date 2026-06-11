@@ -69,21 +69,21 @@ const CartPage = () => {
                         <div className="flex items-center border border-bloom-green/10 rounded-xl overflow-hidden bg-white/50">
                           <button 
                             onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1))}
-                            className="p-2 hover:bg-bloom-green hover:text-white transition-colors"
+                            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bloom-green hover:text-white transition-colors"
                           >
                             <Minus size={16} />
                           </button>
                           <span className="w-10 text-center font-bold">{item.quantity}</span>
                           <button 
                             onClick={() => updateQuantity(item._id, Math.min(item.stockQuantity, item.quantity + 1))}
-                            className="p-2 hover:bg-bloom-green hover:text-white transition-colors"
+                            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bloom-green hover:text-white transition-colors"
                           >
                             <Plus size={16} />
                           </button>
                         </div>
                         <button 
                           onClick={() => removeFromCart(item._id)}
-                          className="text-red-400 hover:text-red-600 transition-colors p-2"
+                          className="text-red-400 hover:text-red-600 transition-colors p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                           <Trash2 size={20} />
                         </button>

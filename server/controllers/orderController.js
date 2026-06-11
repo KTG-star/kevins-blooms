@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 const Flower = require('../models/Flower');
-const { emitStockUpdate } = require('../socket/stockSocket');
+const { emitStockUpdate, emitOrderStatusUpdate } = require('../socket/stockSocket');
 const { createLog } = require('./activityController');
 
 // Delivery Fee Logic
@@ -28,6 +28,8 @@ const placeOrder = async (req, res) => {
     deliveryDate,
     timeSlot,
     giftMessage,
+    promoCode,
+    discountAmount,
     paymentReference,
     paymentStatus
   } = req.body;
@@ -59,7 +61,7 @@ const placeOrder = async (req, res) => {
   }
 
   const deliveryFee = getDeliveryFee(city);
-  const totalAmount = subtotal + deliveryFee;
+  const totalAmount = subtotal + deliveryFee - (discountAmount || 0);
 
   const order = new Order({
     user: req.user._id,
@@ -73,6 +75,8 @@ const placeOrder = async (req, res) => {
     giftMessage,
     deliveryFee,
     totalAmount,
+    discountAmount: discountAmount || 0,
+    promoCode,
     paymentReference,
     paymentStatus: paymentStatus || 'pending'
   });
@@ -123,6 +127,9 @@ const updateOrderStatus = async (req, res) => {
     const oldStatus = order.status;
     order.status = req.body.status || order.status;
     const updatedOrder = await order.save();
+
+    // Emit socket update
+    emitOrderStatusUpdate(order._id.toString(), order.status);
 
     // Map roles for logging based on status if actor is generic admin
     let logRole = req.user.role === 'admin' ? 'support' : req.user.role;
@@ -175,9 +182,29 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// @desc    Get order by ID
+// @route   GET /api/orders/:id
+// @access  Private
+const getOrderById = async (req, res) => {
+  const order = await Order.findById(req.params.id).populate('user', 'fullName email').populate('items.flower');
+
+  if (order) {
+    // Check if user owns order or is admin
+    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      res.status(401);
+      throw new Error('Not authorized to view this order');
+    }
+    res.json({ success: true, data: order });
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+};
+
 module.exports = {
   placeOrder,
   getMyOrders,
   getAllOrders,
-  updateOrderStatus
+  updateOrderStatus,
+  getOrderById
 };

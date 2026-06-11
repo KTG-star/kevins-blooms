@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ShoppingBag, ArrowUpRight } from 'lucide-react';
+import { Heart, ShoppingBag, ArrowUpRight, Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Flower } from '../types';
 
 import FlowerImage from './FlowerImage';
+import ImageLightbox from './ImageLightbox';
 
 interface ProductCardProps {
   flower: Flower;
@@ -18,6 +19,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [showPetals, setShowPetals] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const navigate = useNavigate();
 
   const isLiked = wishlist?.includes(flower._id);
@@ -58,13 +60,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
           <span className="sr-only">View {flower.name}</span>
         </Link>
 
-        <FlowerImage 
-          flowerName={flower.name}
-          photoIds={flower.photoIds || []}
-          originalImage={flower.image}
-          alt={flower.name}
-          className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-110"
-        />
+        <button
+          onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
+          className="absolute inset-0 w-full h-full z-20 cursor-zoom-in"
+          aria-label={`View ${flower.name}`}
+        >
+          <FlowerImage 
+            flowerName={flower.name}
+            photoIds={flower.photoIds || []}
+            originalImage={flower.image}
+            alt={flower.name}
+            className="w-full h-full transition-transform duration-700 group-hover:scale-110 pointer-events-none"
+          />
+        </button>
+
+        {lightboxOpen && (
+          <ImageLightbox
+            src={flower.image || `https://images.unsplash.com/photo-${flower.photoIds?.[0] || '1508193638397-1c4234db14d8'}?w=1200`}
+            alt={flower.name}
+            onClose={() => setLightboxOpen(false)}
+          />
+        )}
         
         {/* Liked Petal Burst */}
         <AnimatePresence>
@@ -131,9 +147,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ flower }) => {
         >
           <div className="flex justify-between items-start mb-2">
             <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] text-bloom-green/60 mb-1 block">
-                {flower.category}
-              </span>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-bloom-green/60 block">
+                  {flower.category}
+                </span>
+                {flower.averageRating !== undefined && flower.averageRating > 0 && (
+                  <div className="flex items-center gap-1 text-[10px] text-bloom-gold font-bold">
+                    <Star size={10} fill="currentColor" />
+                    {flower.averageRating.toFixed(1)}
+                  </div>
+                )}
+              </div>
               <h3 className="text-xl font-cormorant font-bold leading-tight">
                 {flower.name}
               </h3>

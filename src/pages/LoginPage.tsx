@@ -105,7 +105,7 @@ const LoginPage = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 md:p-12 lg:p-24 relative w-full asset-wrapper">
         <Link
           to="/"
-          className="absolute top-6 left-6 md:top-12 md:left-12 flex items-center gap-2 text-bloom-green/40 hover:text-bloom-green transition-all group font-bold text-xs uppercase tracking-widest"
+          className="absolute top-6 left-6 md:top-12 md:left-12 flex items-center gap-2 text-bloom-green/40 dark:text-white/40 hover:text-bloom-green dark:hover:text-white transition-all group font-bold text-xs uppercase tracking-widest"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Home

@@ -3,7 +3,11 @@ let ioInstance;
 const init = (io) => {
   ioInstance = io;
   io.on('connection', (socket) => {
-    // console.log('A client connected:', socket.id);
+    socket.on('joinOrder', (orderId) => {
+      socket.join(orderId);
+      console.log(`Socket ${socket.id} joined order room: ${orderId}`);
+    });
+
     socket.on('disconnect', () => {
       // console.log('Client disconnected:', socket.id);
     });
@@ -16,5 +20,12 @@ const emitStockUpdate = (flowerId, newQuantity) => {
   }
 };
 
+const emitOrderStatusUpdate = (orderId, status) => {
+  if (ioInstance) {
+    ioInstance.to(orderId).emit('orderStatusUpdate', { orderId, status });
+  }
+};
+
 module.exports = init;
 module.exports.emitStockUpdate = emitStockUpdate;
+module.exports.emitOrderStatusUpdate = emitOrderStatusUpdate;

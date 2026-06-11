@@ -7,7 +7,7 @@ const flowerSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Roses', 'Tulips', 'Sunflowers', 'Lilies', 'Orchids', 'Peonies', 'Bouquets', 'Seasonal', 'Other'],
+    enum: ['Roses', 'Tropical', 'Classic', 'Exotic', 'Seasonal', 'Succulents', 'Bouquets', 'Other'],
     required: true
   },
   description: {
@@ -49,6 +49,18 @@ const flowerSchema = new mongoose.Schema({
   isAvailable: {
     type: Boolean,
     default: true
+  },
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review'
+  }],
+  averageRating: {
+    type: Number,
+    default: 0
+  },
+  numReviews: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

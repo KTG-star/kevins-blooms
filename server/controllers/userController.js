@@ -98,10 +98,39 @@ const removeFromWishlist = async (req, res) => {
   res.json({ success: true, message: 'Removed from wishlist', data: user.wishlist });
 };
 
+// @desc    Update profile picture
+// @route   PUT /api/users/profile-picture
+// @access  Private
+const updateProfilePicture = async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    if (!req.file) {
+      res.status(400);
+      throw new Error('Please upload an image');
+    }
+
+    user.profilePicture = req.file.path;
+    const updatedUser = await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile picture updated successfully',
+      data: {
+        profilePicture: updatedUser.profilePicture
+      }
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+};
+
 module.exports = {
   getUsers,
   getUserProfile,
   updateUserProfile,
+  updateProfilePicture,
   changePassword,
   addToWishlist,
   removeFromWishlist

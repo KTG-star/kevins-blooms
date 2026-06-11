@@ -1,4 +1,6 @@
 const Flower = require('../models/Flower');
+const Review = require('../models/Review');
+const Order = require('../models/Order');
 const { emitStockUpdate } = require('../socket/stockSocket');
 const { createLog } = require('./activityController');
 
@@ -17,6 +19,7 @@ const getFlowers = async (req, res) => {
   else if (sort === 'Price High-Low') sortQuery.price = -1;
   else if (sort === 'Newest') sortQuery.createdAt = -1;
   else if (sort === 'Most Popular') sortQuery.sold = -1;
+  else if (sort === 'Highest Rated') sortQuery.averageRating = -1;
 
   const flowers = await Flower.find(query)
     .sort(sortQuery)
@@ -39,10 +42,67 @@ const getFlowers = async (req, res) => {
 // @route   GET /api/flowers/:id
 // @access  Public
 const getFlowerById = async (req, res) => {
-  const flower = await Flower.findById(req.params.id);
+  const flower = await Flower.findById(req.params.id).populate({
+    path: 'reviews',
+    options: { sort: { createdAt: -1 } }
+  });
 
   if (flower) {
     res.json({ success: true, data: flower });
+  } else {
+    res.status(404);
+    throw new Error('Flower not found');
+  }
+};
+
+// @desc    Create new review
+// @route   POST /api/flowers/:id/reviews
+// @access  Private
+const createFlowerReview = async (req, res) => {
+  const { rating, comment } = req.body;
+
+  const flower = await Flower.findById(req.params.id);
+
+  if (flower) {
+    const alreadyReviewed = await Review.findOne({
+      user: req.user._id,
+      flower: req.params.id
+    });
+
+    if (alreadyReviewed) {
+      res.status(400);
+      throw new Error('Flower already reviewed');
+    }
+
+    // Check if user has ordered this flower and it was delivered
+    const hasOrdered = await Order.findOne({
+      user: req.user._id,
+      status: 'Delivered',
+      'items.flower': req.params.id
+    });
+
+    if (!hasOrdered) {
+      res.status(400);
+      throw new Error('You can only review flowers you have purchased and received.');
+    }
+
+    const review = await Review.create({
+      fullName: req.user.fullName,
+      rating: Number(rating),
+      comment,
+      user: req.user._id,
+      flower: req.params.id
+    });
+
+    flower.reviews.push(review._id);
+    flower.numReviews = flower.reviews.length;
+    
+    // Calculate new average rating
+    const allReviews = await Review.find({ flower: req.params.id });
+    flower.averageRating = allReviews.reduce((acc, item) => item.rating + acc, 0) / allReviews.length;
+
+    await flower.save();
+    res.status(201).json({ success: true, message: 'Review added' });
   } else {
     res.status(404);
     throw new Error('Flower not found');
@@ -108,7 +168,6 @@ const updateFlower = async (req, res) => {
     if (flower.stockQuantity === 0) {
       flower.isAvailable = false;
     } else if (flower.stockQuantity > 0 && stockChanged) {
-      // Re-enable if stock is added, unless manually disabled elsewhere
       flower.isAvailable = true; 
     }
 
@@ -225,5 +284,6 @@ module.exports = {
   createFlower,
   updateFlower,
   updateStock,
-  deleteFlower
+  deleteFlower,
+  createFlowerReview
 };

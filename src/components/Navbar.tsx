@@ -49,13 +49,13 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="relative z-50 group nav-logo">
             <h1 className="text-2xl md:text-3xl font-cormorant font-bold text-bloom-green">
-              Kevin's <span className="text-bloom-pink group-hover:text-bloom-gold transition-colors">Blooms</span>
+              Kelvin's <span className="text-bloom-pink group-hover:text-bloom-gold transition-colors">Blooms</span>
             </h1>
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-12">
+        <div className="hidden md:flex items-center gap-12">
           {[
             { label: 'Shop All', path: '/shop' },
             { label: 'Bestsellers', path: '/shop?sort=Most Popular' },
@@ -99,6 +99,10 @@ const Navbar = () => {
             </AnimatePresence>
           </motion.button>
 
+          <Link to="/dashboard?tab=wishlist" className="relative group text-bloom-green hover:text-bloom-pink transition-colors">
+            <Heart size={24} />
+          </Link>
+
           <Link to="/cart" className="relative group">
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -128,9 +132,17 @@ const Navbar = () => {
                 to={user.role === 'admin' ? '/admin' : '/dashboard'} 
                 className="hidden md:flex items-center gap-2 group"
               >
-                <div className="w-8 h-8 rounded-full bg-bloom-pink/20 flex items-center justify-center text-bloom-pink group-hover:bg-bloom-pink group-hover:text-white transition-all">
-                  <User size={18} />
-                </div>
+                {user.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt={user.fullName} 
+                    className="w-8 h-8 rounded-full object-cover border-2 border-bloom-pink/20 group-hover:border-bloom-pink transition-all"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-bloom-pink/20 flex items-center justify-center text-bloom-pink group-hover:bg-bloom-pink group-hover:text-white transition-all">
+                    <User size={18} />
+                  </div>
+                )}
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-bloom-green/80 leading-none">{user.fullName.split(' ')[0]}</span>
                   {user.role === 'admin' && <span className="text-[10px] font-bold text-bloom-pink uppercase tracking-tighter">Admin</span>}

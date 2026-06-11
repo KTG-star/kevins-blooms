@@ -8,6 +8,8 @@
   --bloom-cream: #fdf8f0;
   --bloom-gold: #c9a84c;
   --bloom-lavender: #e8d5f5;
+  --bg-primary: #fdf8f0;
+  --text-primary: #2d5a27;
 }
 
 * {
@@ -65,6 +67,11 @@ body, section, nav, footer, div, h1, h2, h3, h4, p, span, input, button, select,
 /* ============================================
    DARK MODE BASE
    ============================================ */
+.dark {
+  --bg-primary: #050508;
+  --text-primary: #e8e0f0;
+}
+
 .dark body {
   background-color: #050508;
   color: #e8e0f0;
@@ -217,6 +224,133 @@ body, section, nav, footer, div, h1, h2, h3, h4, p, span, input, button, select,
   33% { transform: translate(50px, 30px) scale(1.1); }
   66% { transform: translate(-30px, 60px) scale(0.95); }
   100% { transform: translate(40px, -40px) scale(1.05); }
+}
+
+/* ============================================
+   LIGHT MODE — FLORAL GARDEN BACKGROUND
+   ============================================ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-color: #fdf8f0;
+  background-image:
+    radial-gradient(ellipse 100% 60% at 0% 0%, rgba(242, 196, 206, 0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 100% 100%, rgba(201, 168, 76, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 40%, rgba(232, 213, 245, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 80% 20%, rgba(45, 90, 39, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Floating floral pattern overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cellipse cx='50' cy='38' rx='3.5' ry='10' fill='%23f2c4ce' opacity='0.09'/%3E%3Cellipse cx='50' cy='38' rx='3.5' ry='10' fill='%23f2c4ce' opacity='0.09' transform='rotate(72 50 50)'/%3E%3Cellipse cx='50' cy='38' rx='3.5' ry='10' fill='%23f2c4ce' opacity='0.09' transform='rotate(144 50 50)'/%3E%3Cellipse cx='50' cy='38' rx='3.5' ry='10' fill='%23f2c4ce' opacity='0.09' transform='rotate(216 50 50)'/%3E%3Cellipse cx='50' cy='38' rx='3.5' ry='10' fill='%23f2c4ce' opacity='0.09' transform='rotate(288 50 50)'/%3E%3Cellipse cx='82' cy='18' rx='2.5' ry='7' fill='%23e8d5f5' opacity='0.08' transform='rotate(30 82 18)'/%3E%3Cellipse cx='82' cy='18' rx='2.5' ry='7' fill='%23e8d5f5' opacity='0.08' transform='rotate(102 82 18)'/%3E%3Cellipse cx='82' cy='18' rx='2.5' ry='7' fill='%23e8d5f5' opacity='0.08' transform='rotate(174 82 18)'/%3E%3Cellipse cx='82' cy='18' rx='2.5' ry='7' fill='%23e8d5f5' opacity='0.08' transform='rotate(246 82 18)'/%3E%3Cellipse cx='82' cy='18' rx='2.5' ry='7' fill='%23e8d5f5' opacity='0.08' transform='rotate(318 82 18)'/%3E%3Cellipse cx='18' cy='78' rx='2.5' ry='6' fill='%23c9a84c' opacity='0.06'/%3E%3Cellipse cx='18' cy='78' rx='2.5' ry='6' fill='%23c9a84c' opacity='0.06' transform='rotate(90 18 78)'/%3E%3Cellipse cx='18' cy='78' rx='2.5' ry='6' fill='%23c9a84c' opacity='0.06' transform='rotate(180 18 78)'/%3E%3Cellipse cx='18' cy='78' rx='2.5' ry='6' fill='%23c9a84c' opacity='0.06' transform='rotate(270 18 78)'/%3E%3Cellipse cx='70' cy='75' rx='6' ry='2.5' fill='%232d5a27' opacity='0.04' transform='rotate(35 70 75)'/%3E%3Cellipse cx='30' cy='30' rx='5' ry='2' fill='%232d5a27' opacity='0.035' transform='rotate(-40 30 30)'/%3E%3Cellipse cx='85' cy='65' rx='2' ry='5' fill='%23f2c4ce' opacity='0.05' transform='rotate(60 85 65)'/%3E%3Cellipse cx='15' cy='45' rx='1.5' ry='4' fill='%23e8d5f5' opacity='0.04' transform='rotate(-15 15 45)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  pointer-events: none;
+}
+
+/* ============================================
+   LIGHT MODE HERO — WARM SUNRISE
+   ============================================ */
+.hero,
+section.hero {
+  background: linear-gradient(180deg, #fdf8f0 0%, #fef0f5 35%, #f5f0ee 65%, #fdf8f0 100%) !important;
+}
+
+.hero-bg {
+  background: linear-gradient(to bottom, transparent, #fdf8f0);
+}
+
+/* Warm glowing orbs in light mode */
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 196, 206, 0.12) 0%, transparent 70%);
+  top: -200px;
+  left: -150px;
+  animation: lightOrbFloat 20s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+  bottom: -150px;
+  right: -100px;
+  animation: lightOrbFloat 25s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes lightOrbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, 20px) scale(1.08); }
+  66% { transform: translate(-20px, 50px) scale(0.95); }
+  100% { transform: translate(30px, -30px) scale(1.03); }
+}
+
+/* Light mode glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(242, 196, 206, 0.15) !important;
+  box-shadow: 
+    0 8px 32px rgba(45, 90, 39, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 0 1px rgba(242, 196, 206, 0.05) !important;
+}
+
+.glass-dark {
+  background: rgba(10, 10, 15, 0.5) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Light mode aurora-bg for auth pages */
+.aurora-bg {
+  background: linear-gradient(135deg, #fef6f8 0%, #fdf0e8 35%, #f0f5f0 65%, #fef8f0 100%);
+  position: relative;
+}
+
+/* Section divider for light mode */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(242, 196, 206, 0.3) 30%,
+    rgba(201, 168, 76, 0.15) 50%,
+    rgba(242, 196, 206, 0.3) 70%,
+    transparent 100%
+  );
+  width: 100%;
+}
+
+/* Light mode scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #fdf8f0; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f2c4ce, #e8d5f5);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f2c4cedd, #e8d5f5dd);
 }
 
 /* ============================================

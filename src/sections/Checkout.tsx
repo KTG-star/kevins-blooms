@@ -215,7 +215,7 @@ const Checkout = () => {
               </div>
               <h2 className="text-4xl font-cormorant text-bloom-green mb-4">Order Confirmed!</h2>
               <p className="text-bloom-green/60 font-dmsans mb-10 leading-relaxed">
-                Thank you for choosing Kevin's Blooms. We're hand-selecting your flowers right now. 
+                Thank you for choosing Kelvin's Blooms. We're hand-selecting your flowers right now. 
                 A confirmation email has been sent to your inbox.
               </p>
               <button 

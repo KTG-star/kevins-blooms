@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin', 'florist', 'driver', 'manager', 'support'],
     default: 'user'
   },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: String,
+  verificationTokenExpiry: Date,
   wishlist: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Flower'

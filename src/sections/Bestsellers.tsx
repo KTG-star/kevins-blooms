@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard';
 import { Link } from 'react-router-dom';
 import { Flower } from '../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import localFlowers from '../data/flowers.json';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -22,7 +23,8 @@ const Bestsellers = () => {
           setFlowers(data.data.flowers);
         }
       } catch (error) {
-        console.error("Error fetching bestsellers", error);
+        console.error("Error fetching bestsellers, using local data", error);
+        setFlowers(localFlowers.slice(0, 8).map((f: any) => ({ ...f, _id: f.id })) as Flower[]);
       }
     };
     fetchBestsellers();

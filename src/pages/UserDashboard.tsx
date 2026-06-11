@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { User as UserIcon, Package, Heart, Lock, LogOut, ChevronRight, ArrowLeft } from 'lucide-react';
+import { User as UserIcon, Package, Heart, Lock, LogOut, ChevronRight, Camera, Loader2 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import FlowerImage from '../components/FlowerImage';
 import { Order, Flower } from '../types';
@@ -15,9 +15,10 @@ const Spinner = () => (
 );
 
 const UserDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'profile';
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });
@@ -26,6 +27,7 @@ const UserDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlistFlowers, setWishlistFlowers] = useState<Flower[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -78,6 +80,7 @@ const UserDashboard = () => {
         headers: { Authorization: `Bearer ${user?.token}` },
       });
       if (data.success) {
+        updateUser({ ...user, ...profileData });
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
       }
     } catch (error: any) {
@@ -85,6 +88,35 @@ const UserDashboard = () => {
         type: 'error',
         text: error.response?.data?.message || 'Update failed',
       });
+    }
+  };
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setUploading(true);
+    try {
+      const { data } = await axios.put(`${API_URL}/users/profile-picture`, formData, {
+        headers: { 
+          Authorization: `Bearer ${user?.token}`,
+          'Content-Type': 'multipart/form-data'
+        },
+      });
+      if (data.success) {
+        updateUser({ ...user, profilePicture: data.data.profilePicture });
+        setMessage({ type: 'success', text: 'Profile picture updated!' });
+      }
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Upload failed',
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -123,15 +155,15 @@ const UserDashboard = () => {
   ];
 
   return (
-    <div className="pt-32 pb-24 px-6 bg-bloom-cream min-h-screen">
+    <div className="pt-32 pb-24 px-6 bg-bloom-cream dark:bg-dark-bg min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-bloom-green/60 mb-12">
+        <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-bloom-green/60 dark:text-white/40 mb-12">
           <Link to="/" className="hover:text-bloom-pink transition-colors">Home</Link>
           <ChevronRight size={10} className="opacity-40" />
-          <span className="text-bloom-green/40">My Dashboard</span>
+          <span className="text-bloom-green/40 dark:text-white/20">My Dashboard</span>
           <div className="flex-1" />
-          <Link to="/shop" className="text-bloom-pink hover:text-bloom-green transition-colors flex items-center gap-2">
+          <Link to="/shop" className="text-bloom-pink hover:text-bloom-green dark:hover:text-white transition-colors flex items-center gap-2">
             Explore More Blooms <ChevronRight size={12} />
           </Link>
         </nav>
@@ -141,15 +173,39 @@ const UserDashboard = () => {
           {/* Sidebar */}
           <div className="lg:w-1/4">
             <div className="glass p-8 rounded-[2rem] sticky top-32">
-              <div className="flex items-center gap-4 mb-8 pb-8 border-b border-bloom-green/10">
-                <div className="w-16 h-16 rounded-full bg-bloom-pink/20 flex items-center justify-center text-bloom-pink text-2xl font-bold">
-                  {user?.fullName?.charAt(0)}
+              <div className="flex items-center gap-4 mb-8 pb-8 border-b border-bloom-green/10 dark:border-white/10">
+                <div className="relative group">
+                  {user?.profilePicture ? (
+                    <img 
+                      src={user.profilePicture} 
+                      alt={user.fullName} 
+                      className="w-20 h-20 rounded-full object-cover border-4 border-bloom-pink/20"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-bloom-pink/20 flex items-center justify-center text-bloom-pink text-3xl font-bold">
+                      {user?.fullName?.charAt(0)}
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 bg-bloom-green text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleProfilePictureUpload}
+                  />
                 </div>
                 <div>
-                  <h2 className="font-cormorant font-bold text-xl text-bloom-green">
+                  <h2 className="font-cormorant font-bold text-xl text-bloom-green dark:text-white">
                     {user?.fullName}
                   </h2>
-                  <p className="text-xs text-bloom-green/40">@{user?.username}</p>
+                  <p className="text-xs text-bloom-green/40 dark:text-white/40">@{user?.username}</p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -160,7 +216,7 @@ const UserDashboard = () => {
                     className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all ${
                       activeTab === tab.id
                         ? 'bg-bloom-green text-white shadow-lg shadow-bloom-green/20'
-                        : 'text-bloom-green/60 hover:bg-white/40 hover:text-bloom-green'
+                        : 'text-bloom-green/60 dark:text-white/60 hover:bg-white/40 dark:hover:bg-white/10 hover:text-bloom-green dark:hover:text-white'
                     }`}
                   >
                     {tab.icon}
@@ -169,7 +225,7 @@ const UserDashboard = () => {
                 ))}
                 <button
                   onClick={logout}
-                  className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-red-400 hover:bg-red-50 transition-all mt-8"
+                  className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all mt-8"
                 >
                   <LogOut size={20} />
                   <span className="font-medium">Logout</span>
@@ -191,7 +247,7 @@ const UserDashboard = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="glass p-10 rounded-[2.5rem]"
                 >
-                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green mb-8">
+                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green dark:text-white mb-8">
                     Personal Information
                   </h3>
                   {message.text && (
@@ -206,7 +262,7 @@ const UserDashboard = () => {
                   <form onSubmit={handleUpdateProfile} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                           Full Name
                         </label>
                         <input
@@ -215,11 +271,11 @@ const UserDashboard = () => {
                           onChange={(e) =>
                             setProfileData({ ...profileData, fullName: e.target.value })
                           }
-                          className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                          className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                           Username
                         </label>
                         <input
@@ -228,12 +284,12 @@ const UserDashboard = () => {
                           onChange={(e) =>
                             setProfileData({ ...profileData, username: e.target.value })
                           }
-                          className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                          className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                      <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                         Email Address
                       </label>
                       <input
@@ -242,7 +298,7 @@ const UserDashboard = () => {
                         onChange={(e) =>
                           setProfileData({ ...profileData, email: e.target.value })
                         }
-                        className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                        className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                       />
                     </div>
                     <button className="bg-bloom-green text-white px-10 py-4 rounded-2xl font-bold hover:opacity-90 transition-all shadow-lg shadow-bloom-green/20">
@@ -261,7 +317,7 @@ const UserDashboard = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-6"
                 >
-                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green mb-8">
+                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green dark:text-white mb-8">
                     Order History
                   </h3>
                   {loading ? (
@@ -271,7 +327,7 @@ const UserDashboard = () => {
                   ) : orders.length === 0 ? (
                     <div className="glass p-12 rounded-[2.5rem] text-center">
                       <Package size={48} className="mx-auto text-bloom-green/20 mb-4" />
-                      <p className="text-bloom-green/60">You have not placed any orders yet.</p>
+                      <p className="text-bloom-green/60 dark:text-white/60">You have not placed any orders yet.</p>
                     </div>
                   ) : (
                     orders.map((order) => (
@@ -290,18 +346,18 @@ const UserDashboard = () => {
                                 alt="flower"
                                 width={64}
                                 height={64}
-                                className="w-16 h-16 rounded-xl border-2 border-white"
+                                className="w-16 h-16 rounded-xl border-2 border-white dark:border-dark-card"
                               />
                             ))}
                           </div>
                           <div>
-                            <p className="text-xs uppercase tracking-widest text-bloom-green/40 mb-1">
+                            <p className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 mb-1">
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
-                            <h4 className="font-bold text-bloom-green">
+                            <h4 className="font-bold text-bloom-green dark:text-white">
                               Order #{order._id.slice(-6).toUpperCase()}
                             </h4>
-                            <p className="text-sm text-bloom-green/60">
+                            <p className="text-sm text-bloom-green/60 dark:text-white/60">
                               {order.items.length} items • ₦{order.totalAmount.toLocaleString()}
                             </p>
                           </div>
@@ -314,9 +370,9 @@ const UserDashboard = () => {
                           }`}>
                             {order.status}
                           </span>
-                          <button className="p-3 rounded-xl border border-bloom-green/10 text-bloom-green hover:bg-bloom-green hover:text-white transition-all">
+                          <Link to={`/tracking/${order._id}`} className="p-3 rounded-xl border border-bloom-green/10 dark:border-white/10 text-bloom-green dark:text-white hover:bg-bloom-green hover:text-white transition-all">
                             <ChevronRight size={20} />
-                          </button>
+                          </Link>
                         </div>
                       </div>
                     ))
@@ -332,7 +388,7 @@ const UserDashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green mb-8">
+                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green dark:text-white mb-8">
                     My Favorites
                   </h3>
                   {loading ? (
@@ -342,7 +398,7 @@ const UserDashboard = () => {
                   ) : wishlistFlowers.length === 0 ? (
                     <div className="glass p-12 rounded-[2.5rem] text-center">
                       <Heart size={48} className="mx-auto text-bloom-green/20 mb-4" />
-                      <p className="text-bloom-green/60">Your wishlist is empty.</p>
+                      <p className="text-bloom-green/60 dark:text-white/60">Your wishlist is empty.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -363,7 +419,7 @@ const UserDashboard = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="glass p-10 rounded-[2.5rem]"
                 >
-                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green mb-8">
+                  <h3 className="text-3xl font-cormorant font-bold text-bloom-green dark:text-white mb-8">
                     Update Password
                   </h3>
                   {message.text && (
@@ -377,7 +433,7 @@ const UserDashboard = () => {
                   )}
                   <form onSubmit={handleChangePassword} className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                      <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                         Current Password
                       </label>
                       <input
@@ -386,12 +442,12 @@ const UserDashboard = () => {
                         onChange={(e) =>
                           setPasswordData({ ...passwordData, oldPassword: e.target.value })
                         }
-                        className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                        className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                           New Password
                         </label>
                         <input
@@ -400,11 +456,11 @@ const UserDashboard = () => {
                           onChange={(e) =>
                             setPasswordData({ ...passwordData, newPassword: e.target.value })
                           }
-                          className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                          className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 ml-4">
+                        <label className="text-xs uppercase tracking-widest text-bloom-green/40 dark:text-white/40 ml-4">
                           Confirm New Password
                         </label>
                         <input
@@ -413,7 +469,7 @@ const UserDashboard = () => {
                           onChange={(e) =>
                             setPasswordData({ ...passwordData, confirmPassword: e.target.value })
                           }
-                          className="w-full px-6 py-4 rounded-2xl bg-white border border-bloom-green/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
+                          className="w-full px-6 py-4 rounded-2xl bg-white dark:bg-dark-card dark:text-white border border-bloom-green/10 dark:border-white/10 focus:ring-2 focus:ring-bloom-green/20 outline-none"
                         />
                       </div>
                     </div>

@@ -1,5 +1,6 @@
 export interface Flower {
   _id: string;
+  id?: string;
   name: string;
   category: string;
   description: string;
@@ -7,8 +8,10 @@ export interface Flower {
   image?: string;
   photoIds: string[];
   stockQuantity: number;
-  lowStockThreshold: number;
-  unitCost: number;
+  lowStockThreshold?: number;
+  unitCost?: number;
+  averageRating?: number;
+  numReviews?: number;
 }
 
 export interface User {

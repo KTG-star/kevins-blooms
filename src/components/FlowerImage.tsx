@@ -12,7 +12,7 @@ interface FlowerImageProps {
 
 const GLOBAL_BACKUPS = [
   '1518709268805-4e9042af9f23',
-  '1490750967868-88df5691cc5e',
+  '1548094990-c16ca90f1f0d',
   '1508193638397-1c4234db14d8',
   '1597848212624-a19eb35e2651',
   '1566694271453-390536dd1f0d'
@@ -27,7 +27,7 @@ const FlowerImage: React.FC<FlowerImageProps> = ({
   width = 600, 
   height = 800 
 }) => {
-  const [stage, setStage] = useState(1); // 0: photoIds, 1: original, 2: global, 3: svg
+  const [stage, setStage] = useState(0); // 0: photoIds, 1: original, 2: global, 3: svg
   const [subIndex, setSubIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   

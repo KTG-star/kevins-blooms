@@ -4,9 +4,12 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Loader2, CheckCircle2, ArrowLeft, Send, ShoppingBag } from 'lucide-react';
+import { Loader2, CheckCircle2, ArrowLeft, Send, ShoppingBag, Tag, X } from 'lucide-react';
 import FlowerImage from '../components/FlowerImage';
 import { usePaystackPayment } from 'react-paystack';
+
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key';
@@ -19,7 +22,13 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderRef, setOrderRef] = useState('');
+  const [fullOrder, setFullOrder] = useState<any>(null);
   const [error, setError] = useState('');
+
+  // Promo state
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     recipientName: '',
@@ -34,13 +43,128 @@ const CheckoutPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const totalAmount = subtotal + deliveryFee;
+  const discountAmount = appliedPromo ? (subtotal * appliedPromo.discount) / 100 : 0;
+  const totalAmount = subtotal + deliveryFee - discountAmount;
+
+  const handleApplyPromo = async () => {
+    if (!promoCodeInput) return;
+    setPromoLoading(true);
+    setError('');
+    try {
+      const { data } = await axios.post(`${API_URL}/promo/validate`, 
+        { code: promoCodeInput },
+        { headers: { Authorization: `Bearer ${user?.token}` } }
+      );
+      if (data.success) {
+        setAppliedPromo(data.data);
+        setPromoCodeInput('');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid promo code');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+  };
+
+  const generateReceiptPDF = () => {
+    if (!fullOrder) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFontSize(24);
+    doc.setTextColor(45, 79, 30); // bloom-green
+    doc.setFont('times', 'bold');
+    doc.text("Kelvin's Blooms", pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(212, 163, 115); // bloom-gold
+    doc.setFont('helvetica', 'italic');
+    doc.text("Premium Floral Experiences", pageWidth / 2, 26, { align: 'center' });
+
+    doc.setDrawColor(212, 163, 115);
+    doc.setLineWidth(0.5);
+    doc.line(20, 32, pageWidth - 20, 32);
+
+    // Order Info
+    doc.setFontSize(12);
+    doc.setTextColor(45, 79, 30);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Receipt for Order #${orderRef}`, 20, 45);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 52);
+    doc.text(`Customer: ${user?.fullName}`, 20, 58);
+
+    // Delivery Details
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(45, 79, 30);
+    doc.text("Delivery To:", 20, 70);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(formData.recipientName, 20, 76);
+    doc.text(`${formData.deliveryAddress}, ${city}`, 20, 82);
+    doc.text(formData.recipientPhone, 20, 88);
+
+    // Table
+    const tableData = cart.map(item => [
+      item.name,
+      item.quantity.toString(),
+      `N${item.price.toLocaleString()}`,
+      `N${(item.price * item.quantity).toLocaleString()}`
+    ]);
+
+    (doc as any).autoTable({
+      startY: 100,
+      head: [['Flower', 'Quantity', 'Price', 'Total']],
+      body: tableData,
+      headStyles: { fillColor: [45, 79, 30], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [250, 247, 242] },
+      margin: { left: 20, right: 20 },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Totals
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(45, 79, 30);
+    doc.text(`Subtotal: N${subtotal.toLocaleString()}`, pageWidth - 20, finalY, { align: 'right' });
+    doc.text(`Delivery Fee: N${deliveryFee.toLocaleString()}`, pageWidth - 20, finalY + 7, { align: 'right' });
+    if (discountAmount > 0) {
+      doc.text(`Discount (${appliedPromo.code}): -N${discountAmount.toLocaleString()}`, pageWidth - 20, finalY + 14, { align: 'right' });
+    }
+    doc.setFontSize(14);
+    doc.text(`Total Amount: N${totalAmount.toLocaleString()}`, pageWidth - 20, finalY + 24, { align: 'right' });
+
+    if (formData.giftMessage) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(212, 163, 115);
+      doc.text("Gift Message:", 20, finalY + 35);
+      doc.setTextColor(100);
+      doc.text(`"${formData.giftMessage}"`, 20, finalY + 41, { maxWidth: pageWidth - 40 });
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Thank you for choosing Kelvin's Blooms. We hope these flowers bring joy to your day!", pageWidth / 2, 280, { align: 'center' });
+
+    doc.save(`Kelvins-Blooms-Receipt-${orderRef}.pdf`);
+  };
 
   // Generate fresh reference each time
   const getConfig = useCallback(() => ({
     reference: `kb_${new Date().getTime()}_${Math.random().toString(36).substr(2, 9)}`,
     email: user?.email || 'customer@kevinsblooms.com',
-    amount: totalAmount * 100,
+    amount: Math.round(totalAmount * 100),
     publicKey: PAYSTACK_PUBLIC_KEY,
     currency: 'NGN',
   }), [totalAmount, user?.email]);
@@ -67,6 +191,8 @@ const CheckoutPage = () => {
           deliveryDate: formData.deliveryDate,
           timeSlot: formData.timeSlot,
           giftMessage: formData.giftMessage,
+          promoCode: appliedPromo?.code,
+          discountAmount: discountAmount,
           paymentReference: reference.reference,
           paymentStatus: 'paid'
         };
@@ -76,6 +202,7 @@ const CheckoutPage = () => {
         });
 
         if (data.success) {
+          setFullOrder(data.data);
           setOrderRef(data.data._id.slice(-6).toUpperCase());
           setSuccess(true);
           clearCart();
@@ -86,7 +213,7 @@ const CheckoutPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [cart, city, formData, user, clearCart]);
+  }, [cart, city, formData, user, clearCart, appliedPromo, discountAmount]);
 
   const onClose = useCallback(() => {
     setError('Payment was cancelled. Please try again.');
@@ -179,12 +306,18 @@ const CheckoutPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate('/dashboard')}
               className="bg-white border-2 border-bloom-green/10 text-bloom-green py-4 rounded-xl font-bold hover:bg-bloom-green hover:text-white transition-all"
             >
               Track Order
+            </button>
+            <button
+              onClick={generateReceiptPDF}
+              className="bg-bloom-gold text-white py-4 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg"
+            >
+              Download Receipt
             </button>
             <button
               onClick={() => navigate('/shop')}
@@ -403,6 +536,43 @@ const CheckoutPage = () => {
                 ))}
               </div>
 
+              {/* Promo Code Input */}
+              <div className="mb-8 pt-6 border-t border-bloom-green/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <Tag size={16} className="text-bloom-pink" />
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-bloom-green/60 dark:text-white/40">Promo Code</span>
+                </div>
+                
+                {!appliedPromo ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value)}
+                      placeholder="ENTER CODE"
+                      className="flex-1 bg-white dark:bg-dark-card border border-bloom-green/10 dark:border-white/10 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-bloom-pink"
+                    />
+                    <button 
+                      onClick={handleApplyPromo}
+                      disabled={promoLoading || !promoCodeInput}
+                      className="bg-bloom-green text-white px-6 py-3 rounded-xl font-bold text-xs uppercase disabled:opacity-50"
+                    >
+                      {promoLoading ? <Loader2 className="animate-spin" size={16} /> : 'Apply'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-bloom-pink/10 border border-bloom-pink/20 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 size={16} className="text-bloom-pink" />
+                      <span className="text-xs font-bold text-bloom-pink uppercase tracking-widest">{appliedPromo.code} Applied!</span>
+                    </div>
+                    <button onClick={removePromo} className="text-bloom-pink hover:scale-110 transition-transform">
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-4 pt-6 border-t border-bloom-green/10">
                 <div className="flex justify-between text-bloom-green/60 font-medium">
                   <span>Subtotal</span>
@@ -410,6 +580,14 @@ const CheckoutPage = () => {
                     ₦{subtotal.toLocaleString()}
                   </span>
                 </div>
+                {appliedPromo && (
+                  <div className="flex justify-between text-bloom-pink font-medium">
+                    <span>Discount ({appliedPromo.discount}%)</span>
+                    <span className="font-bold">
+                      -₦{discountAmount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-bloom-green/60 font-medium">
                   <div className="flex flex-col">
                     <span>Delivery Fee</span>
