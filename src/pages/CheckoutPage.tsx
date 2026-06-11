@@ -160,17 +160,7 @@ const CheckoutPage = () => {
     doc.save(`Kelvins-Blooms-Receipt-${orderRef}.pdf`);
   };
 
-  // Generate fresh reference each time
-  const getConfig = useCallback(() => ({
-    reference: `kb_${new Date().getTime()}_${Math.random().toString(36).substr(2, 9)}`,
-    email: user?.email || 'customer@kevinsblooms.com',
-    amount: Math.round(totalAmount * 100),
-    publicKey: PAYSTACK_PUBLIC_KEY,
-    currency: 'NGN',
-  }), [totalAmount, user?.email]);
-
-  const [config, setConfig] = useState(getConfig);
-  const initializePayment = usePaystackPayment(config);
+  const initializePayment = usePaystackPayment({ publicKey: PAYSTACK_PUBLIC_KEY });
 
   const onSuccess = useCallback(async (reference: any) => {
     setLoading(true);
@@ -217,9 +207,7 @@ const CheckoutPage = () => {
 
   const onClose = useCallback(() => {
     setError('Payment was cancelled. Please try again.');
-    // Reset config for next attempt
-    setConfig(getConfig());
-  }, [getConfig]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,14 +233,16 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Generate fresh config before payment
-    const freshConfig = getConfig();
-    setConfig(freshConfig);
-
-    // Small delay to ensure config is updated before payment opens
-    setTimeout(() => {
-      initializePayment({ onSuccess, onClose });
-    }, 150);
+    initializePayment({
+      config: {
+        reference: `kb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        email: user.email,
+        amount: Math.round(totalAmount * 100),
+        currency: 'NGN',
+      },
+      onSuccess,
+      onClose
+    });
   };
 
   if (success) {
