@@ -328,6 +328,10 @@ section.hero {
   position: relative;
 }
 
+.dark .aurora-bg {
+  background: linear-gradient(135deg, #0a0a0f 0%, #16162a 35%, #0d1a0d 65%, #1a0d14 100%);
+}
+
 /* Section divider for light mode */
 .section-divider {
   height: 1px;
