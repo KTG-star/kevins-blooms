@@ -13,6 +13,7 @@ import PetalTrail from './components/PetalTrail';
 import PageTransition from './components/PageTransition';
 import LandingPage from './pages/LandingPage';
 import { Instagram, Phone, Mail, MessageCircle } from 'lucide-react';
+import ChatBot from './components/ChatBot';
 
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
 const ShopPage = lazy(() => import('./pages/ShopPage'));
@@ -228,12 +229,15 @@ function AppLayout() {
         </div>
       </footer>
 
+      {/* AI Chatbot */}
+      <ChatBot />
+
       {/* WhatsApp Floating Button */}
       <a 
         href="https://wa.me/2347033699729?text=Hi%20Kelvin's%20Blooms!%20I'd%20like%20to%20place%20an%20order." 
         target="_blank" 
         rel="noopener noreferrer"
-        className="fixed bottom-8 right-8 z-[60] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 group"
+        className="fixed bottom-8 right-8 z-[50] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 group"
         aria-label="Contact on WhatsApp"
       >
         <MessageCircle size={28} />
