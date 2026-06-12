@@ -39,6 +39,7 @@ app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/promo', require('./routes/promoRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 app.get('/', (req, res) => {
   res.send('Kevin\'s Blooms API is running...');
