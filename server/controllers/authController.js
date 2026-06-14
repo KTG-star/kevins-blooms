@@ -96,8 +96,10 @@ const loginUser = async (req, res) => {
 
   if (user && (await user.comparePassword(password))) {
     if (!user.isVerified) {
-      res.status(401);
-      throw new Error('Please verify your email address before logging in.');
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpiry = undefined;
+      await user.save();
     }
 
     res.json({

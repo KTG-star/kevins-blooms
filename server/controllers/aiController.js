@@ -1,21 +1,22 @@
-const genAI = async (prompt, system = '') => {
+const axios = require('axios');
+
+const GEMINI_TIMEOUT = 25000;
+
+const callGemini = async (contents, system = '') => {
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error('GEMINI_API_KEY is not set in server .env');
 
-    const contents = [{ role: 'user', parts: [{ text: prompt }] }];
-    const body = system ? { contents, systemInstruction: { parts: [{ text: system }] } } : { contents };
+    const body = {
+        contents,
+        ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {})
+    };
 
-    const response = await fetch(
+    const { data } = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        }
+        body,
+        { timeout: GEMINI_TIMEOUT }
     );
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'Gemini API error');
     return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
 };
 
@@ -29,9 +30,11 @@ A customer needs flower recommendations for the following:
 - Budget: ${budget || 'no specific budget'}
 Suggest 3 flower options with a brief reason for each. Keep it friendly and concise.`;
 
-        const result = await genAI(prompt);
+        const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+        const result = await callGemini(contents, 'You are a flower expert for Kevin\'s Blooms, a flower delivery shop.');
         res.json({ success: true, recommendation: result });
     } catch (error) {
+        console.error('AI recommendation error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -48,25 +51,10 @@ const chatWithAI = async (req, res) => {
 
         const contents = [...formattedHistory, { role: 'user', parts: [{ text: message }] }];
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents,
-                    systemInstruction: {
-                        parts: [{ text: 'You are a helpful assistant for Kevin\'s Blooms, a flower delivery shop in Nigeria. Answer questions about flowers, orders, delivery, and occasions. Be friendly, warm, and concise.' }]
-                    }
-                })
-            }
-        );
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || 'Gemini API error');
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
+        const reply = await callGemini(contents, 'You are a helpful assistant for Kelvin\'s Blooms, a flower delivery shop in Nigeria. Answer questions about flowers, orders, delivery, and occasions. Be friendly, warm, and concise.');
         res.json({ success: true, reply });
     } catch (error) {
+        console.error('AI chat error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -79,9 +67,11 @@ Colors: ${colors || 'mixed'}.
 Mood/Theme: ${mood || 'general'}. 
 Keep it under 60 words, poetic but simple. For Kevin's Blooms flower shop.`;
 
-        const result = await genAI(prompt);
+        const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+        const result = await callGemini(contents);
         res.json({ success: true, description: result });
     } catch (error) {
+        console.error('AI description error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -96,9 +86,11 @@ Occasion: ${occasion}
 Tone: ${tone || 'warm and heartfelt'}
 Keep it under 40 words. Make it feel genuine and personal.`;
 
-        const result = await genAI(prompt);
+        const contents = [{ role: 'user', parts: [{ text: prompt }] }];
+        const result = await callGemini(contents);
         res.json({ success: true, message: result });
     } catch (error) {
+        console.error('AI card message error:', error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 };
